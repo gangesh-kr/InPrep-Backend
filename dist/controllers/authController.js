@@ -35,6 +35,7 @@ const register = async (req, res) => {
                 id: user.id,
                 email: user.email,
                 fullName: user.fullName,
+                credits: user.credits,
             },
         });
     }
@@ -66,6 +67,7 @@ const login = async (req, res) => {
                 id: user.id,
                 email: user.email,
                 fullName: user.fullName,
+                credits: user.credits,
             },
         });
     }
@@ -82,6 +84,7 @@ const getMe = async (req, res) => {
                 id: true,
                 email: true,
                 fullName: true,
+                credits: true,
                 createdAt: true,
             },
         });

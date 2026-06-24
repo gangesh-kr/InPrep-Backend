@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const CompanyPackService_1 = __importDefault(require("./services/CompanyPackService"));
 const prisma = new client_1.PrismaClient();
 const QUESTIONS_DATA = [
     // 1. System Design & Architecture
@@ -280,6 +281,8 @@ async function main() {
         });
     }
     console.log(`Successfully seeded ${QUESTIONS_DATA.length} interview questions for ${user.email}.`);
+    // Seed company packs
+    await CompanyPackService_1.default.seedPacks();
 }
 main()
     .catch((e) => {

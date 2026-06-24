@@ -40,9 +40,32 @@ import {
   getActivityHeatmap
 } from '../controllers/analyticsController';
 
+// Middleware & Schema Imports
+import { validateRequest } from '../middleware/validate';
+import { getHistoryQuerySchema, sessionIdParamSchema } from '../schemas/history';
+import { getTrendsQuerySchema } from '../schemas/analytics';
+import { emptySchema } from '../schemas/weakness';
+import { packIdParamSchema } from '../schemas/packs';
+import { synthesizeBodySchema } from '../schemas/voice';
+import { generateScorecardSchema, scorecardIdParamSchema, shareScorecardSchema, publicTokenParamSchema } from '../schemas/scorecard';
+import { generatePlanSchema, toggleTaskSchema } from '../schemas/learningPlan';
+
+// Controller Imports
+import { getHistory, getInterviewDetails, deleteHistory } from '../controllers/interviewHistoryController';
+import { getTrends, getScoreBreakdown, getActivity } from '../controllers/trendsController';
+import { getWeaknessProfile, refreshWeaknessProfile } from '../controllers/weaknessProfileController';
+import { listPacks, getPackDetail, startPackSession, purchasePack } from '../controllers/companyPackController';
+import { transcribe, synthesize } from '../controllers/voiceController';
+import { generateScorecard, shareScorecard, getPublicScorecard, revokeScorecard, deleteScorecard } from '../controllers/scorecardController';
+import {
+  generatePlan as generateLearningPlan,
+  getPlan as getLearningPlan,
+  toggleTask as toggleLearningTask,
+  regeneratePlan as regenerateLearningPlan
+} from '../controllers/learningPlanController';
+
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
-
 
 // Auth routes
 router.post('/auth/register', register);
@@ -91,5 +114,156 @@ router.get('/analytics/activity-heatmap', authenticateToken as any, getActivityH
 
 // AI Interviewer routes
 router.use('/ai-interviewer', authenticateToken as any, aiInterviewerRouter);
+
+// ==========================================
+// NEW FEATURE ENDPOINTS
+// ==========================================
+
+// Feature 1: Interview History routes
+router.get(
+  '/interview-history',
+  authenticateToken as any,
+  validateRequest({ query: getHistoryQuerySchema }),
+  getHistory as any
+);
+router.get(
+  '/interview-history/:sessionId',
+  authenticateToken as any,
+  validateRequest({ params: sessionIdParamSchema }),
+  getInterviewDetails as any
+);
+router.delete(
+  '/interview-history/:sessionId',
+  authenticateToken as any,
+  validateRequest({ params: sessionIdParamSchema }),
+  deleteHistory as any
+);
+
+// Feature 2: Analytics Trends routes
+router.get(
+  '/analytics/trends',
+  authenticateToken as any,
+  validateRequest({ query: getTrendsQuerySchema }),
+  getTrends as any
+);
+router.get(
+  '/analytics/score-breakdown',
+  authenticateToken as any,
+  getScoreBreakdown as any
+);
+router.get(
+  '/analytics/activity',
+  authenticateToken as any,
+  getActivity as any
+);
+
+// Feature 3: Weak Topic Detection routes
+router.get(
+  '/weakness-profile',
+  authenticateToken as any,
+  getWeaknessProfile as any
+);
+router.post(
+  '/weakness-profile/refresh',
+  authenticateToken as any,
+  validateRequest({ body: emptySchema }),
+  refreshWeaknessProfile as any
+);
+
+// Feature 4: Company Packs routes
+router.get(
+  '/packs',
+  authenticateToken as any,
+  listPacks as any
+);
+router.get(
+  '/packs/:packId',
+  authenticateToken as any,
+  validateRequest({ params: packIdParamSchema }),
+  getPackDetail as any
+);
+router.post(
+  '/packs/:packId/start',
+  authenticateToken as any,
+  validateRequest({ params: packIdParamSchema }),
+  startPackSession as any
+);
+router.post(
+  '/packs/:packId/purchase',
+  authenticateToken as any,
+  validateRequest({ params: packIdParamSchema }),
+  purchasePack as any
+);
+
+// Feature 5: Voice Conversations routes
+router.post(
+  '/voice/transcribe',
+  authenticateToken as any,
+  upload.single('file'),
+  transcribe as any
+);
+router.post(
+  '/voice/synthesize',
+  authenticateToken as any,
+  validateRequest({ body: synthesizeBodySchema }),
+  synthesize as any
+);
+
+// Feature 6: Recruiter-Ready Scorecards routes
+router.post(
+  '/scorecards/generate',
+  authenticateToken as any,
+  validateRequest({ body: generateScorecardSchema }),
+  generateScorecard as any
+);
+router.post(
+  '/scorecards/:scorecardId/share',
+  authenticateToken as any,
+  validateRequest({ params: scorecardIdParamSchema, body: shareScorecardSchema }),
+  shareScorecard as any
+);
+router.post(
+  '/scorecards/:scorecardId/revoke',
+  authenticateToken as any,
+  validateRequest({ params: scorecardIdParamSchema }),
+  revokeScorecard as any
+);
+router.delete(
+  '/scorecards/:scorecardId',
+  authenticateToken as any,
+  validateRequest({ params: scorecardIdParamSchema }),
+  deleteScorecard as any
+);
+// Public Scorecard Route (UNAUTHENTICATED)
+router.get(
+  '/scorecard/public/:publicToken',
+  validateRequest({ params: publicTokenParamSchema }),
+  getPublicScorecard as any
+);
+
+// Feature 7: Personalized Learning Plans routes
+router.get(
+  '/learning-plan',
+  authenticateToken as any,
+  getLearningPlan as any
+);
+router.post(
+  '/learning-plan/generate',
+  authenticateToken as any,
+  validateRequest({ body: generatePlanSchema }),
+  generateLearningPlan as any
+);
+router.patch(
+  '/learning-plan/task',
+  authenticateToken as any,
+  validateRequest({ body: toggleTaskSchema }),
+  toggleLearningTask as any
+);
+router.post(
+  '/learning-plan/regenerate',
+  authenticateToken as any,
+  validateRequest({ body: emptySchema }),
+  regenerateLearningPlan as any
+);
 
 export default router;

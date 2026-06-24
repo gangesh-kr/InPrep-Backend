@@ -2,7 +2,11 @@ import { Response } from 'express';
 import prisma from '../client';
 import { AuthRequest } from '../middleware/auth';
 
-console.log('=============================================> process', process.memoryUsage())
+import logger from '../utils/logger';
+
+// Log memory usage via structured pino logger
+logger.info({ event: 'memory_usage_check', memory: process.memoryUsage() }, 'Checked process memory usage');
+
 
 export const listQuestions = async (req: AuthRequest, res: Response) => {
   try {

@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import CompanyPackService from './services/CompanyPackService';
+
 
 const prisma = new PrismaClient();
 
@@ -293,6 +295,9 @@ async function main() {
   }
 
   console.log(`Successfully seeded ${QUESTIONS_DATA.length} interview questions for ${user.email}.`);
+
+  // Seed company packs
+  await CompanyPackService.seedPacks();
 }
 
 main()

@@ -13,4 +13,5 @@ router.post('/respond', aiInterviewerController_1.respondInterview);
 router.post('/finish', aiInterviewerController_1.finishInterview);
 router.get('/history', aiInterviewerController_1.getHistory);
 router.get('/history/:id', aiInterviewerController_1.getInterviewDetails);
+router.post('/purchase-credits', aiInterviewerController_1.purchaseCredits);
 exports.default = router;

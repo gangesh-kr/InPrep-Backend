@@ -5,7 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteQuestion = exports.updateQuestion = exports.createQuestion = exports.listQuestions = void 0;
 const client_1 = __importDefault(require("../client"));
-console.log('=============================================> process', process.memoryUsage());
+const logger_1 = __importDefault(require("../utils/logger"));
+// Log memory usage via structured pino logger
+logger_1.default.info({ event: 'memory_usage_check', memory: process.memoryUsage() }, 'Checked process memory usage');
 const listQuestions = async (req, res) => {
     try {
         const { difficulty, category, skill } = req.query;
