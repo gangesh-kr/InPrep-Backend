@@ -55,6 +55,14 @@ app.use('/api/v1', apiLimiter);
 
 app.use('/api/v1', router);
 
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to the InPrep Backend API',
+    status: 'healthy',
+    timestamp: new Date()
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date() });
 });
