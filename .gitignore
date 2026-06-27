@@ -24,4 +24,5 @@ dist-ssr
 *.sw?
 .env
 *.db
+prisma/sqlite_backup.json
 

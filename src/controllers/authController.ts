@@ -4,6 +4,9 @@ import jwt from 'jsonwebtoken';
 import prisma from '../client';
 import { AuthRequest } from '../middleware/auth';
 
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET environment variable is required in production mode!');
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-123';
 
 export const register = async (req: Request, res: Response) => {

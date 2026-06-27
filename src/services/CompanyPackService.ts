@@ -211,7 +211,7 @@ export class CompanyPackService {
 
     // TODO: Insert Stripe payment verification and gateway logic here.
     // Ensure payment confirmation response is validated before creating database records.
-    
+
     // Auto-approve purchase for now
     const access = await prisma.userPackAccess.upsert({
       where: {

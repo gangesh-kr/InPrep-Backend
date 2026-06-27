@@ -11,9 +11,9 @@ import WeaknessAnalysisService from './WeaknessAnalysisService';
 export function getSimulatedQuestion(position: string, jd: string, resumeText: string | null, roundIndex: number): string {
   const jdLower = jd.toLowerCase();
   const resumeLower = resumeText ? resumeText.toLowerCase() : '';
-  
+
   const isFrontend = jdLower.includes('react') || jdLower.includes('frontend') || jdLower.includes('javascript') || jdLower.includes('typescript') || resumeLower.includes('react');
-  
+
   if (roundIndex === 0) {
     if (resumeText) {
       const targetTech = isFrontend ? 'React and TypeScript' : 'Node.js and Express';
@@ -21,7 +21,7 @@ export function getSimulatedQuestion(position: string, jd: string, resumeText: s
     }
     return `Hello! Welcome to your interview for the ${position} role. To start off, could you please introduce yourself, tell me about your background, and outline how your experience aligns with this position?`;
   }
-  
+
   if (roundIndex === 1) {
     if (isFrontend) {
       return `Let's drill down into React rendering. When a state update is triggered in a hook (e.g. setState), how does React schedule and batch this update internally? Furthermore, how do you prevent unnecessary render cycles, and what are the exact performance limits of using Context API vs. an external state manager like Zustand under high frequency updates?`;
@@ -29,7 +29,7 @@ export function getSimulatedQuestion(position: string, jd: string, resumeText: s
       return `Following up on the event loop, since Node is single-threaded, how do you handle CPU-intensive calculations (like cryptographic hashing or image processing) without blocking incoming I/O requests? Walk me through worker threads vs. child processes, and how you manage pool size.`;
     }
   }
-  
+
   if (roundIndex === 2) {
     if (isFrontend) {
       return `Let's talk about closures and scoping. A common issue with React hooks (like useEffect or useCallback) is stale closures. Can you explain the fundamental JavaScript mechanism (lexical scoping) that causes stale closures in React, and write/explain exactly how you resolve them using refs or dependency arrays?`;
@@ -37,7 +37,7 @@ export function getSimulatedQuestion(position: string, jd: string, resumeText: s
       return `Let's look at database concurrency. Suppose we have a high-throughput check-out API in Node.js mapping to a PostgreSQL/SQLite database. How do you implement connection pooling? More importantly, how do you prevent race conditions (like double-booking or inventory depletion) using transaction isolation levels and Optimistic vs. Pessimistic locking?`;
     }
   }
-  
+
   if (roundIndex === 3) {
     if (isFrontend) {
       return `When building a collaborative or real-time frontend dashboard, how do you handle caching, cache invalidation, and data consistency between client-side state and server-side databases (e.g., using optimistic UI updates or polling)? What are the trade-offs?`;
@@ -96,7 +96,7 @@ export function getSimulatedQuestion(position: string, jd: string, resumeText: s
 export function calculateAnswerScore(answer: string, question: string): { score: number, feedback: string, idealAnswer: string } {
   const length = answer.trim().length;
   const answerLower = answer.toLowerCase();
-  
+
   let score = 5;
   let feedback = '';
   let idealAnswer = '';
@@ -115,10 +115,10 @@ export function calculateAnswerScore(answer: string, question: string): { score:
     }
   } else if (question.includes('state management') || question.includes('backend') || question.includes('technical problem')) {
     idealAnswer = 'Provide a structured technical explanation (e.g. Redux/Zustand for React, or Indexing/ORM optimization for SQL). Mention performance strategies, trade-offs, and use the STAR method for past project experiences.';
-    
+
     const keywords = ['state', 'context', 'redux', 'zustand', 'database', 'index', 'sql', 'express', 'performance', 'optimize', 'cache', 'api', 'architecture', 'solved', 'challenge'];
     const matches = keywords.filter(kw => answerLower.includes(kw)).length;
-    
+
     if (length < 30) {
       score = 4;
       feedback = 'The technical explanation lacked details. You should explain the underlying concepts and give concrete examples of how you applied them.';
@@ -133,7 +133,7 @@ export function calculateAnswerScore(answer: string, question: string): { score:
     idealAnswer = 'Discuss horizontal vs vertical scaling, load balancers, caching layers (like Redis), message queues (like RabbitMQ/Kafka), database indexing/sharding, and API gateways.';
     const keywords = ['scale', 'load balancer', 'cache', 'redis', 'queue', 'kafka', 'database', 'cdn', 'architecture', 'latency', 'api', 'sharding'];
     const matches = keywords.filter(kw => answerLower.includes(kw)).length;
-    
+
     if (length < 30) {
       score = 4;
       feedback = 'System design answers require a walk-through of structural components. Your answer did not specify the layers or technologies required to scale.';
@@ -166,19 +166,19 @@ export function runSimulatedEvaluation(position: string, company: string, jd: st
   let totalScore = 0;
   let evaluatedCount = 0;
   let hasSuspectedFalseSkills = false;
-  
+
   for (let i = 0; i < transcriptList.length; i += 2) {
     const qObj = transcriptList[i];
     const aObj = transcriptList[i + 1];
-    
+
     if (qObj && aObj) {
       const qText = qObj.text;
       const aText = aObj.text;
       const analysis = calculateAnswerScore(aText, qText);
-      
+
       let itemFeedback = analysis.feedback;
       let itemRating = analysis.score;
-      
+
       if (resumeText && (qText.toLowerCase().includes('resume') || qText.toLowerCase().includes('claimed') || qText.toLowerCase().includes('trade-off'))) {
         if (aText.trim().length < 40) {
           itemRating = Math.max(3, itemRating - 3);
@@ -186,7 +186,7 @@ export function runSimulatedEvaluation(position: string, company: string, jd: st
           hasSuspectedFalseSkills = true;
         }
       }
-      
+
       questionAnswers.push({
         question: qText,
         candidateAnswer: aText,
@@ -194,21 +194,21 @@ export function runSimulatedEvaluation(position: string, company: string, jd: st
         feedback: itemFeedback,
         idealAnswer: analysis.idealAnswer
       });
-      
+
       totalScore += itemRating;
       evaluatedCount++;
     }
   }
-  
+
   const avgRating = evaluatedCount > 0 ? totalScore / evaluatedCount : 7;
   let overallScore = Math.min(100, Math.round(avgRating * 10));
-  
+
   if (hasSuspectedFalseSkills) {
     overallScore = Math.max(40, overallScore - 15);
   }
-  
+
   const verdict = overallScore >= 75 ? 'SELECTED' : 'NOT SELECTED';
-  
+
   let feedbackSummary = overallScore >= 75
     ? `The candidate performed very well for the ${position} role. They demonstrated sound technical logic, clear communication, and verified their resume claims successfully. With an overall score of ${overallScore}%, they meet the hiring bar.`
     : `The candidate showed potential but fell short on technical depth and failed to substantiate some of the claims made on their resume. For a role in ${position}, a higher level of authentic technical detail is expected.`;
@@ -216,16 +216,16 @@ export function runSimulatedEvaluation(position: string, company: string, jd: st
   if (hasSuspectedFalseSkills) {
     feedbackSummary += ` WARNING: Probing questions revealed potential discrepancies/false skill claims in the candidate's resume (specifically regarding advanced tools or workflows where they could not provide structured technical reasoning).`;
   }
-    
+
   const strengths = [
     'Articulate speaker with good conversational speed',
     'Demonstrates hands-on coding experience',
     'Good focus on teamwork and collaborative conflict resolution'
   ];
-  
+
   const weaknesses = [
-    hasSuspectedFalseSkills 
-      ? 'Resume claims did not match depth of verbal technical explanations' 
+    hasSuspectedFalseSkills
+      ? 'Resume claims did not match depth of verbal technical explanations'
       : 'Could provide more concrete architectural details in design scenarios',
     'Needs to explicitly mention performance benchmarks and testing approaches',
     'Should expand on database optimization strategies under high concurrent loads'
@@ -250,9 +250,9 @@ const saveFailedQuestions = async (userId: string, questionsAnalysis: any[]) => 
         const existingQ = await prisma.question.findFirst({
           where: { userId, text: qa.question }
         });
-        
+
         let questionId = existingQ?.id;
-        
+
         if (!existingQ) {
           const newQ = await prisma.question.create({
             data: {
@@ -325,9 +325,9 @@ export class InterviewService {
       throw new ApiError(404, 'USER_NOT_FOUND', 'User not found.');
     }
 
-    if (user.credits <= 0) {
-      throw new ApiError(402, 'OUT_OF_CREDITS', 'You have run out of mock interview credits. Please purchase more credits to start a new session.');
-    }
+    // if (user.credits <= 0) {
+    //   throw new ApiError(402, 'OUT_OF_CREDITS', 'You have run out of mock interview credits. Please purchase more credits to start a new session.');
+    // }
 
     // Deduct credit
     await prisma.user.update({
@@ -662,9 +662,9 @@ Rule 3: Do not output any meta-data, prefixes like "Interviewer:", or markdown. 
 
     const transcriptList = JSON.parse(interview.transcript);
     const report = runSimulatedEvaluation(
-      interview.position, 
-      interview.companyName || '', 
-      interview.jobDescription, 
+      interview.position,
+      interview.companyName || '',
+      interview.jobDescription,
       interview.resumeText,
       transcriptList
     );

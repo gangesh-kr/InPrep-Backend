@@ -13,6 +13,9 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
     return res.status(401).json({ error: 'Access token required' });
   }
 
+  if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable is required in production mode!');
+  }
   const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-123';
 
   jwt.verify(token, jwtSecret, (err, decoded: any) => {
