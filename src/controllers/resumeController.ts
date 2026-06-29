@@ -50,17 +50,18 @@ export const uploadAndParseResume = async (req: AuthRequest, res: Response) => {
       where: { userId }
     });
 
-    const savedSkills = await Promise.all(
-      detectedSkills.map(async (skillName) => {
-        return prisma.skill.create({
-          data: {
-            userId,
-            name: skillName,
-            proficiencyLevel: 'Intermediate',
-          },
-        });
-      })
-    );
+    await prisma.skill.createMany({
+      data: detectedSkills.map(skillName => ({
+        userId,
+        name: skillName,
+        proficiencyLevel: 'Intermediate',
+      })),
+      skipDuplicates: true,
+    });
+
+    const savedSkills = await prisma.skill.findMany({
+      where: { userId }
+    });
 
     return res.json({
       message: `Successfully parsed resume and processed ${savedSkills.length} skills.`,

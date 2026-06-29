@@ -37,7 +37,8 @@ import {
 import {
   getSummary,
   getSkillsDistribution,
-  getActivityHeatmap
+  getActivityHeatmap,
+  getDashboardFeed
 } from '../controllers/analyticsController';
 
 // Middleware & Schema Imports
@@ -48,7 +49,7 @@ import { emptySchema } from '../schemas/weakness';
 import { packIdParamSchema } from '../schemas/packs';
 import { synthesizeBodySchema } from '../schemas/voice';
 import { generateScorecardSchema, scorecardIdParamSchema, shareScorecardSchema, publicTokenParamSchema } from '../schemas/scorecard';
-import { generatePlanSchema, toggleTaskSchema } from '../schemas/learningPlan';
+import { generatePlanSchema, toggleTaskSchema, addTaskSchema, editTaskSchema, deleteTaskSchema } from '../schemas/learningPlan';
 
 // Controller Imports
 import { getHistory, getInterviewDetails, deleteHistory } from '../controllers/interviewHistoryController';
@@ -61,6 +62,9 @@ import {
   generatePlan as generateLearningPlan,
   getPlan as getLearningPlan,
   toggleTask as toggleLearningTask,
+  addTask as addLearningTask,
+  editTask as editLearningTask,
+  deleteTask as deleteLearningTask,
   regeneratePlan as regenerateLearningPlan
 } from '../controllers/learningPlanController';
 
@@ -111,6 +115,7 @@ router.post('/intelligence/journal', authenticateToken as any, createJournalEntr
 router.get('/analytics/summary', authenticateToken as any, getSummary as any);
 router.get('/analytics/skills-distribution', authenticateToken as any, getSkillsDistribution as any);
 router.get('/analytics/activity-heatmap', authenticateToken as any, getActivityHeatmap as any);
+router.get('/analytics/dashboard-feed', authenticateToken as any, getDashboardFeed as any);
 
 // AI Interviewer routes
 router.use('/ai-interviewer', authenticateToken as any, aiInterviewerRouter);
@@ -258,6 +263,24 @@ router.patch(
   authenticateToken as any,
   validateRequest({ body: toggleTaskSchema }),
   toggleLearningTask as any
+);
+router.post(
+  '/learning-plan/task',
+  authenticateToken as any,
+  validateRequest({ body: addTaskSchema }),
+  addLearningTask as any
+);
+router.put(
+  '/learning-plan/task',
+  authenticateToken as any,
+  validateRequest({ body: editTaskSchema }),
+  editLearningTask as any
+);
+router.delete(
+  '/learning-plan/task',
+  authenticateToken as any,
+  validateRequest({ body: deleteTaskSchema }),
+  deleteLearningTask as any
 );
 router.post(
   '/learning-plan/regenerate',

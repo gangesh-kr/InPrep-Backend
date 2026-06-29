@@ -309,6 +309,164 @@ JSON Schema:
     };
   }
 
+  static async addTask({
+    userId,
+    weekNumber,
+    dayOfWeek,
+    topic,
+    activityType,
+    durationMinutes
+  }: {
+    userId: string;
+    weekNumber: number;
+    dayOfWeek: string;
+    topic: string;
+    activityType: string;
+    durationMinutes: number;
+  }) {
+    const plan = await prisma.learningPlan.findUnique({
+      where: { userId }
+    });
+
+    if (!plan) {
+      throw new ApiError(404, 'PLAN_NOT_FOUND', 'No active learning plan found.');
+    }
+
+    const planObj = JSON.parse(plan.generatedPlan as string);
+    const week = planObj.weeks.find((w: any) => w.weekNumber === weekNumber);
+    if (!week) {
+      throw new ApiError(400, 'WEEK_NOT_FOUND', `Week ${weekNumber} does not exist in this learning plan.`);
+    }
+
+    if (!week.dailyTasks) {
+      week.dailyTasks = [];
+    }
+
+    week.dailyTasks.push({
+      day: dayOfWeek,
+      topic,
+      activityType,
+      durationMinutes,
+      completed: false
+    });
+
+    await prisma.learningPlan.update({
+      where: { userId },
+      data: {
+        generatedPlan: JSON.stringify(planObj)
+      }
+    });
+
+    logger.info({ event: 'learning_plan_task_added', userId, weekNumber, dayOfWeek, topic }, 'Added custom task to learning plan');
+
+    return {
+      message: 'Task added successfully',
+      generatedPlan: planObj
+    };
+  }
+
+  static async editTask({
+    userId,
+    weekNumber,
+    dayOfWeek,
+    taskIndex,
+    topic,
+    activityType,
+    durationMinutes
+  }: {
+    userId: string;
+    weekNumber: number;
+    dayOfWeek: string;
+    taskIndex: number;
+    topic: string;
+    activityType: string;
+    durationMinutes: number;
+  }) {
+    const plan = await prisma.learningPlan.findUnique({
+      where: { userId }
+    });
+
+    if (!plan) {
+      throw new ApiError(404, 'PLAN_NOT_FOUND', 'No active learning plan found.');
+    }
+
+    const planObj = JSON.parse(plan.generatedPlan as string);
+    const week = planObj.weeks.find((w: any) => w.weekNumber === weekNumber);
+    if (!week) {
+      throw new ApiError(400, 'WEEK_NOT_FOUND', `Week ${weekNumber} does not exist in this learning plan.`);
+    }
+
+    const task = week.dailyTasks[taskIndex];
+    if (!task || task.day.toLowerCase() !== dayOfWeek.toLowerCase()) {
+      throw new ApiError(400, 'TASK_NOT_FOUND', `Task not found at day ${dayOfWeek} and index ${taskIndex}.`);
+    }
+
+    task.topic = topic;
+    task.activityType = activityType;
+    task.durationMinutes = durationMinutes;
+
+    await prisma.learningPlan.update({
+      where: { userId },
+      data: {
+        generatedPlan: JSON.stringify(planObj)
+      }
+    });
+
+    logger.info({ event: 'learning_plan_task_edited', userId, weekNumber, dayOfWeek, taskIndex }, 'Edited task in learning plan');
+
+    return {
+      message: 'Task edited successfully',
+      generatedPlan: planObj
+    };
+  }
+
+  static async deleteTask({
+    userId,
+    weekNumber,
+    dayOfWeek,
+    taskIndex
+  }: {
+    userId: string;
+    weekNumber: number;
+    dayOfWeek: string;
+    taskIndex: number;
+  }) {
+    const plan = await prisma.learningPlan.findUnique({
+      where: { userId }
+    });
+
+    if (!plan) {
+      throw new ApiError(404, 'PLAN_NOT_FOUND', 'No active learning plan found.');
+    }
+
+    const planObj = JSON.parse(plan.generatedPlan as string);
+    const week = planObj.weeks.find((w: any) => w.weekNumber === weekNumber);
+    if (!week) {
+      throw new ApiError(400, 'WEEK_NOT_FOUND', `Week ${weekNumber} does not exist in this learning plan.`);
+    }
+
+    const task = week.dailyTasks[taskIndex];
+    if (!task || task.day.toLowerCase() !== dayOfWeek.toLowerCase()) {
+      throw new ApiError(400, 'TASK_NOT_FOUND', `Task not found at day ${dayOfWeek} and index ${taskIndex}.`);
+    }
+
+    week.dailyTasks.splice(taskIndex, 1);
+
+    await prisma.learningPlan.update({
+      where: { userId },
+      data: {
+        generatedPlan: JSON.stringify(planObj)
+      }
+    });
+
+    logger.info({ event: 'learning_plan_task_deleted', userId, weekNumber, dayOfWeek, taskIndex }, 'Deleted task from learning plan');
+
+    return {
+      message: 'Task deleted successfully',
+      generatedPlan: planObj
+    };
+  }
+
   static async regeneratePlan(userId: string) {
     const plan = await prisma.learningPlan.findUnique({
       where: { userId }

@@ -60,6 +60,71 @@ export const toggleTask = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const addTask = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { weekNumber, dayOfWeek, topic, activityType, durationMinutes } = req.body;
+
+    const result = await LearningPlanService.addTask({
+      userId,
+      weekNumber,
+      dayOfWeek,
+      topic,
+      activityType,
+      durationMinutes
+    });
+
+    return res.status(201).json(result);
+  } catch (error: any) {
+    logger.error({ event: 'add_task_error', error: error.message }, 'Error in addTask controller');
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({ error: error.message || 'Internal server error.' });
+  }
+};
+
+export const editTask = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { weekNumber, dayOfWeek, taskIndex, topic, activityType, durationMinutes } = req.body;
+
+    const result = await LearningPlanService.editTask({
+      userId,
+      weekNumber,
+      dayOfWeek,
+      taskIndex,
+      topic,
+      activityType,
+      durationMinutes
+    });
+
+    return res.json(result);
+  } catch (error: any) {
+    logger.error({ event: 'edit_task_error', error: error.message }, 'Error in editTask controller');
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({ error: error.message || 'Internal server error.' });
+  }
+};
+
+export const deleteTask = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { weekNumber, dayOfWeek, taskIndex } = req.body;
+
+    const result = await LearningPlanService.deleteTask({
+      userId,
+      weekNumber,
+      dayOfWeek,
+      taskIndex
+    });
+
+    return res.json(result);
+  } catch (error: any) {
+    logger.error({ event: 'delete_task_error', error: error.message }, 'Error in deleteTask controller');
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({ error: error.message || 'Internal server error.' });
+  }
+};
+
 export const regeneratePlan = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
