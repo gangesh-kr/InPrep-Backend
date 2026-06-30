@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import router from './routes';
+import errorHandler from './middleware/errorHandler';
 
 dotenv.config();
 
@@ -30,20 +31,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Intercept all 500 responses and sanitize raw database/server logs to prevent leakage
-app.use((req, res, next) => {
-  const originalJson = res.json;
-  res.json = function (body) {
-    if (res.statusCode === 500 && body && body.error) {
-      // Log the full detailed error trace internally on the server console
-      console.error(`[SERVER ERROR] ${req.method} ${req.url} - Internal Failure:`, body.error);
-      // Strip sensitive db trace/filesystem errors and return a clean client message
-      body.error = 'Internal server error. Please try again later.';
-    }
-    return originalJson.call(this, body);
-  };
-  next();
-});
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -71,6 +58,9 @@ app.use('/api/v1/auth/register', authLimiter);
 app.use('/api/v1', apiLimiter);
 
 app.use('/api/v1', router);
+
+// Register global error handler after all routes
+app.use(errorHandler as any);
 
 app.get('/', (req, res) => {
   res.json({
